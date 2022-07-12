@@ -1,20 +1,27 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpException,
   HttpStatus,
   Param,
+  ParseBoolPipe,
+  ParseUUIDPipe,
   Post,
   Put,
+  Query,
   UseFilters,
+  UsePipes,
 } from '@nestjs/common';
 import { ForbiddenException } from 'src/forbidden.exception';
 import { HttpExceptionFilter } from 'src/http-exception.filter';
+import { ValidationPipe } from 'src/validation.pipe';
 import { CatsService } from './cats.service';
 import { CreateCatDto, UpdateCatDto } from './dto/create-cat.dto';
 import { Cat } from './interfaces/cat.interface';
+import { ParseIntPipe } from 'src/parse-int.pipe';
 
 @Controller('cats')
 export class CatsController {
@@ -22,20 +29,29 @@ export class CatsController {
 
   @Post()
   async create(@Body() createCatDto: CreateCatDto) {
-    throw new ForbiddenException();
+    this.catsService.create(createCatDto);
   }
 
   @Get()
-  async findAll() {
-    throw new ForbiddenException();
+  async findAll(
+    @Query('activeOnly', new DefaultValuePipe(false), ParseBoolPipe)
+    activeOnly: boolean,
+    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+  ) {
+    return {
+      activeOnly,
+      page,
+    };
   }
   // async findAll(): Promise<Cat[]> {
   //   return this.catsService.findAll();
   // }
 
   @Get(':id')
-  findOne(@Param('id') id: string): string {
-    console.log(id);
+  async findOne(
+    @Param('id', new ParseIntPipe())
+    id,
+  ) {
     return `This action returns a #${id} cat`;
   }
 
